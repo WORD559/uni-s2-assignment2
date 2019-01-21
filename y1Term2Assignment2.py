@@ -38,7 +38,7 @@ wavelength = 500e-9
 slit_width = 1500e-9
 
 # TODO: Assignment Task 1: define any additional functions you might need
-pass
+r = (np.pi/-2, np.pi/2)
 # End of Task 1; proceed to task 2.
 
 def slit_pdf(alpha):
@@ -56,7 +56,10 @@ def slit_pdf(alpha):
         resulting value(s) of the pdf
     """
     # TODO: Assignment Task 2: write function body
-    pass
+    a = slit_width*np.sin(alpha)/wavelength
+    result = np.sinc(a)**2
+    
+    return result
     # End of Task 2; proceed to task 3.
 
 def rv_from_pdf(pdf_function, pdf_range, n):
@@ -80,7 +83,13 @@ def rv_from_pdf(pdf_function, pdf_range, n):
         resulting random values
     """
     # TODO: Assignment Task 3: write function body
-    pass
+    x = np.linspace(pdf_range[0], pdf_range[1], 1000)
+    y = pdf_function(x)
+    tx = integrate.cumtrapz(y, x, initial=0)
+    
+    inv = interpolate.interp1d(tx, x)
+    
+    return tx#inv(np.random.rand(n))
     # End of Task 3; proceed to task 4.
 
 def generate_plot(fig, n, bins):
@@ -106,7 +115,15 @@ def generate_plot(fig, n, bins):
         figure object with fully labelled plot
     """
     # TODO: Assignment Task 4: write function body
-    pass
+    ### testing crap ###
+    ax = fig.add_subplot(1,1,1)
+    
+#    x_rand = rv_from_pdf(slit_pdf, (np.pi/-2, np.pi/2), n)
+#    
+#    ax.plot(x_rand, np.random.rand(x_rand.shape[0]), ".")
+    x = np.linspace(r[0], r[1], 1000)
+    y = rv_from_pdf(slit_pdf,r , 10)
+    ax.plot(x, y)
     # End of Task 4; no further tasks.
 
 def main():
