@@ -39,6 +39,10 @@ slit_width = 1500e-9
 
 # TODO: Assignment Task 1: define any additional functions you might need
 r = (np.pi/-2, np.pi/2)
+
+def get_normalisation_const(f, r):
+    return integrate.quad(f, r[0], r[1])[0]
+
 # End of Task 1; proceed to task 2.
 
 def slit_pdf(alpha):
@@ -85,11 +89,12 @@ def rv_from_pdf(pdf_function, pdf_range, n):
     # TODO: Assignment Task 3: write function body
     x = np.linspace(pdf_range[0], pdf_range[1], 1000)
     y = pdf_function(x)
-    tx = integrate.cumtrapz(y, x, initial=0)
+    nc = get_normalisation_const(pdf_function, pdf_range)
+    tx = integrate.cumtrapz(y/nc, x, initial=0)
     
     inv = interpolate.interp1d(tx, x)
     
-    return tx#inv(np.random.rand(n))
+    return inv(np.random.rand(n))
     # End of Task 3; proceed to task 4.
 
 def generate_plot(fig, n, bins):
@@ -117,13 +122,27 @@ def generate_plot(fig, n, bins):
     # TODO: Assignment Task 4: write function body
     ### testing crap ###
     ax = fig.add_subplot(1,1,1)
-    
-#    x_rand = rv_from_pdf(slit_pdf, (np.pi/-2, np.pi/2), n)
-#    
-#    ax.plot(x_rand, np.random.rand(x_rand.shape[0]), ".")
+
+    x_rand = rv_from_pdf(slit_pdf, r, n)
+
+    nr_in_bin, bin_edges = np.histogram(x_rand, bins=bins, range=r)
+    width = bin_edges[1:] - bin_edges[:-1]
+    center = (bin_edges[:-1] + bin_edges[1:]) / 2
+    yerr = np.sqrt(nr_in_bin)
+    s = 1/np.sum(width*nr_in_bin)
+
+    ax.bar(center, nr_in_bin*s, align='center', width=width*0.9, yerr=yerr*s,
+       color='g', error_kw={'elinewidth':2, 'capsize':4, 'capthick':2},
+       label='histogram of custom random sample', edgecolor="grey")
+
+    nc = get_normalisation_const(slit_pdf, r)
     x = np.linspace(r[0], r[1], 1000)
-    y = rv_from_pdf(slit_pdf,r , 10)
-    ax.plot(x, y)
+    ax.plot(x, slit_pdf(x)/nc, 'r-', linewidth=2, label='PDF')
+    ax.set_xlabel('x position')
+    ax.set_ylabel('probability density')
+    ax.set_title('Random distribution of points along x')
+    ax.legend()
+    
     # End of Task 4; no further tasks.
 
 def main():
