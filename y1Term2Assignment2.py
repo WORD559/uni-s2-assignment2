@@ -59,6 +59,23 @@ def get_normalisation_const(function, f_range):
     """
     return integrate.quad(function, f_range[0], f_range[1])[0]
 
+def intensity(alpha):
+    """Un-normalised PDF for single-slit diffraction.
+
+    Parameters
+    ----------
+    alpha : float or numpy array of float
+        angle(s) to evaluate the intensity at.
+        angles are in radians.
+
+    Returns
+    -------
+    x : float or numpy array of float
+        resulting intensity(s)
+    """
+    x = slit_width*np.sin(alpha)/wavelength
+    return np.sinc(x)**2
+
 # End of Task 1; proceed to task 2.
 
 def slit_pdf(alpha):
@@ -76,10 +93,10 @@ def slit_pdf(alpha):
         resulting value(s) of the pdf
     """
     # TODO: Assignment Task 2: write function body
-    x = slit_width*np.sin(alpha)/wavelength
-    result = np.sinc(x)**2
 
-    return result
+    nc = get_normalisation_const(intensity, r)
+
+    return intensity(alpha)/nc
     # End of Task 2; proceed to task 3.
 
 def rv_from_pdf(pdf_function, pdf_range, n):
@@ -104,9 +121,8 @@ def rv_from_pdf(pdf_function, pdf_range, n):
     """
     # TODO: Assignment Task 3: write function body
     alpha = np.linspace(pdf_range[0], pdf_range[1], 1000)
-    y = pdf_function(alpha)
-    nc = get_normalisation_const(pdf_function, pdf_range)
-    tx = integrate.cumtrapz(y/nc, alpha, initial=0)
+    prob = pdf_function(alpha)
+    tx = integrate.cumtrapz(prob, alpha, initial=0)
 
     inv = interpolate.interp1d(tx, alpha)
 
@@ -155,7 +171,7 @@ def generate_plot(fig, n, bins):
     x = np.linspace(r[0], r[1], 1000)
     ax.plot(x, slit_pdf(x)/nc, 'r-', linewidth=2, label='PDF')
     ax.set_xlabel('$\\alpha$ (radians)')
-    ax.set_ylabel('Probability')
+    ax.set_ylabel('Probability density')
     ax.set_title('Random distribution of points as $\\alpha$ varies')
     ax.legend()
 
