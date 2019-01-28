@@ -40,8 +40,24 @@ slit_width = 1500e-9
 # TODO: Assignment Task 1: define any additional functions you might need
 r = (np.pi/-2, np.pi/2)
 
-def get_normalisation_const(f, r):
-    return integrate.quad(f, r[0], r[1])[0]
+def get_normalisation_const(function, f_range):
+    """Get the constant a function must be divided by in order to normalise it into a PDF.
+
+    Parameters
+    ----------
+    function : function
+        Function to normalise
+
+    f_range : array-like
+        r[0] is the minimum value for the PDF
+        r[1] is the maximum value for the PDF
+
+    Returns
+    -------
+    k : float
+        Normalisation constant. Divide function by k to normalise the PDF.
+    """
+    return integrate.quad(function, f_range[0], f_range[1])[0]
 
 # End of Task 1; proceed to task 2.
 
@@ -60,9 +76,9 @@ def slit_pdf(alpha):
         resulting value(s) of the pdf
     """
     # TODO: Assignment Task 2: write function body
-    a = slit_width*np.sin(alpha)/wavelength
-    result = np.sinc(a)**2
-    
+    x = slit_width*np.sin(alpha)/wavelength
+    result = np.sinc(x)**2
+
     return result
     # End of Task 2; proceed to task 3.
 
@@ -87,13 +103,13 @@ def rv_from_pdf(pdf_function, pdf_range, n):
         resulting random values
     """
     # TODO: Assignment Task 3: write function body
-    x = np.linspace(pdf_range[0], pdf_range[1], 1000)
-    y = pdf_function(x)
+    alpha = np.linspace(pdf_range[0], pdf_range[1], 1000)
+    y = pdf_function(alpha)
     nc = get_normalisation_const(pdf_function, pdf_range)
-    tx = integrate.cumtrapz(y/nc, x, initial=0)
-    
-    inv = interpolate.interp1d(tx, x)
-    
+    tx = integrate.cumtrapz(y/nc, alpha, initial=0)
+
+    inv = interpolate.interp1d(tx, alpha)
+
     return inv(np.random.rand(n))
     # End of Task 3; proceed to task 4.
 
@@ -121,7 +137,7 @@ def generate_plot(fig, n, bins):
     """
     # TODO: Assignment Task 4: write function body
     ### testing crap ###
-    ax = fig.add_subplot(1,1,1)
+    ax = fig.add_subplot(1, 1, 1)
 
     x_rand = rv_from_pdf(slit_pdf, r, n)
 
@@ -132,17 +148,19 @@ def generate_plot(fig, n, bins):
     s = 1/np.sum(width*nr_in_bin)
 
     ax.bar(center, nr_in_bin*s, align='center', width=width*0.9, yerr=yerr*s,
-       color='g', error_kw={'elinewidth':2, 'capsize':4, 'capthick':2},
-       label='histogram of custom random sample', edgecolor="grey")
+           color='g', error_kw={'elinewidth':2, 'capsize':4, 'capthick':2},
+           label='histogram of custom random sample', edgecolor="grey")
 
     nc = get_normalisation_const(slit_pdf, r)
     x = np.linspace(r[0], r[1], 1000)
     ax.plot(x, slit_pdf(x)/nc, 'r-', linewidth=2, label='PDF')
-    ax.set_xlabel('x position')
-    ax.set_ylabel('probability density')
-    ax.set_title('Random distribution of points along x')
+    ax.set_xlabel('$\\alpha$ (radians)')
+    ax.set_ylabel('Probability')
+    ax.set_title('Random distribution of points as $\\alpha$ varies')
     ax.legend()
-    
+
+    return fig
+
     # End of Task 4; no further tasks.
 
 def main():
